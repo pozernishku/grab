@@ -9,5 +9,5 @@ import scrapy
 
 
 class GrabItem(scrapy.Item):
-    # define the fields for your item here like:
     domain = scrapy.Field()
+    r_url = scrapy.Field()
