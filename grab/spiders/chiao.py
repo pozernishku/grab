@@ -18,15 +18,19 @@ class ChiaoSpider(scrapy.Spider):
 
     def parse_domain(self, response):
         r_url = html.unescape(response.url)
-        self.log('>>> ' + str(len(response.meta['redirect_urls'])))
-        self.log(response.meta['redirect_urls'])
         yield response.follow(r_url, self.parse_pure_domain, meta={'r_url': r_url}, dont_filter=True)
 
     def parse_pure_domain(self, response):
         third_script = response.xpath('//script[3]').get(default='')
         href = ''.join(self.regex_href.findall(third_script)).strip(', "')
-        domain = urlparse(href)
-        domain = '{uri.scheme}://{uri.netloc}/'.format(uri=domain)
 
+        yield response.follow(html.unescape(href), self.parse_pure_domain_redirected, meta=response.meta, dont_filter=True)
+
+
+    def parse_pure_domain_redirected(self, response):
+        domain = urlparse(response.url)
+        domain = '{uri.scheme}://{uri.netloc}/'.format(uri=domain)
+        # domain = urlparse(href)
+        # domain = '{uri.scheme}://{uri.netloc}/'.format(uri=domain)
         yield GrabItem(domain = domain,
                        r_url = response.meta.get('r_url'))
